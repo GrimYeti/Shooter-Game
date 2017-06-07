@@ -28,7 +28,7 @@ class Player(pygame.sprite.Sprite):
         # Call the parent's constructor
         super().__init__()
  
-        # Create an image of the block, and fill it with a color.
+    
         # This could also be an image loaded from the disk.
         player = pygame.image.load("player4.png").convert()
         player.set_colorkey(BLACK)
@@ -181,9 +181,9 @@ class Block(pygame.sprite.Sprite):
         # Call the parent class (Sprite) constructor
         super().__init__()
  
-        enemy = pygame.image.load("test2.png").convert()
+        blocks = pygame.image.load("test2.png").convert()
  
-        self.image = enemy 
+        self.image = blocks 
         self.image.set_colorkey(BLACK)
  
         self.rect = self.image.get_rect()
@@ -288,6 +288,26 @@ class Level_01(Level):
             block.player = self.player
             self.platform_list.add(block)
             
+        # Go through the array above and add platforms
+        for blocks in level:
+            for i in range(50):
+                    # This represents a block
+                    blocks = Block(BLUE)
+                 
+                    # Set a random location for the block
+                    blocks.rect.x = random.randrange(SCREEN_WIDTH)
+                    blocks.rect.y = random.randrange(350)
+                 
+                    # Add the block to the list of objects
+                    self.blocks_list.add(blocks)
+                    all_sprite_list.add(blocks)
+            
+            
+            #block = Platform(platform[0], platform[1])
+            #block.rect.x = platform[2]
+            #block.rect.y = platform[3]
+            #block.player = self.player
+            #self.platform_list.add(block)        
  
  
 # Create platforms for the level
@@ -357,17 +377,17 @@ def main():
     player.rect.y = SCREEN_HEIGHT - player.rect.height
     active_sprite_list.add(player)
     
-    for i in range(50):
-        # This represents a block
-        blocks = Block(BLUE)
+    #for i in range(50):
+        ## This represents a block
+        #blocks = Block(BLUE)
      
-        # Set a random location for the block
-        blocks.rect.x = random.randrange(SCREEN_WIDTH)
-        blocks.rect.y = random.randrange(350)
+        ## Set a random location for the block
+        #blocks.rect.x = random.randrange(SCREEN_WIDTH)
+        #blocks.rect.y = random.randrange(350)
      
-        # Add the block to the list of objects
-        blocks_list.add(blocks)
-        all_sprite_list.add(blocks)    
+        ## Add the block to the list of objects
+        #blocks_list.add(blocks)
+        #all_sprite_list.add(blocks)    
  
     # Loop until the user clicks the close button.
     done = False
