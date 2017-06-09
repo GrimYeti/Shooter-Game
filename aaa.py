@@ -217,6 +217,8 @@ class Level():
         self.platform_list = pygame.sprite.Group()
         self.enemy_list = pygame.sprite.Group()
         self.blocks_list = pygame.sprite.Group()
+        self.all_sprite_list = pygame.sprite.Group()
+        self.bullet_list = pygame.sprite.Group()
         self.player = player
  
         # How far this world has been scrolled left/right
@@ -228,6 +230,8 @@ class Level():
         self.platform_list.update()
         self.enemy_list.update()
         self.blocks_list.update()
+        self.all_sprite_list.update()
+        self.bullet_list.update()
  
     def draw(self, screen):
         """ Draw everything on this level. """
@@ -240,6 +244,8 @@ class Level():
         self.platform_list.draw(screen)
         self.enemy_list.draw(screen)
         self.blocks_list.draw(screen)
+        self.all_sprite_list.draw(screen)
+        self.bullet_list.draw(screen)
  
     def shift_world(self, shift_x):
         """ When the user moves left/right and we need to scroll
@@ -300,14 +306,7 @@ class Level_01(Level):
                  
                     # Add the block to the list of objects
                     self.blocks_list.add(blocks)
-                    all_sprite_list.add(blocks)
-            
-            
-            #block = Platform(platform[0], platform[1])
-            #block.rect.x = platform[2]
-            #block.rect.y = platform[3]
-            #block.player = self.player
-            #self.platform_list.add(block)        
+                    self.all_sprite_list.add(blocks)      
  
  
 # Create platforms for the level
@@ -338,6 +337,20 @@ class Level_02(Level):
             block.rect.y = platform[3]
             block.player = self.player
             self.platform_list.add(block)
+            
+        # Go through the array above and add platforms
+        for blocks in level:
+            for i in range(50):
+                    # This represents a block
+                    blocks = Block(BLUE)
+                 
+                    # Set a random location for the block
+                    blocks.rect.x = random.randrange(SCREEN_WIDTH)
+                    blocks.rect.y = random.randrange(350)
+                 
+                    # Add the block to the list of objects
+                    self.blocks_list.add(blocks)
+                    self.all_sprite_list.add(blocks)              
             
  
  
@@ -377,17 +390,6 @@ def main():
     player.rect.y = SCREEN_HEIGHT - player.rect.height
     active_sprite_list.add(player)
     
-    #for i in range(50):
-        ## This represents a block
-        #blocks = Block(BLUE)
-     
-        ## Set a random location for the block
-        #blocks.rect.x = random.randrange(SCREEN_WIDTH)
-        #blocks.rect.y = random.randrange(350)
-     
-        ## Add the block to the list of objects
-        #blocks_list.add(blocks)
-        #all_sprite_list.add(blocks)    
  
     # Loop until the user clicks the close button.
     done = False
@@ -471,10 +473,10 @@ def main():
         for bullet in bullet_list:
          
                 # See if it hit a block
-                block_hit_list = pygame.sprite.spritecollide(bullet, blocks_list, True)
+                block_hit_list = pygame.sprite.spritecollide(bullet, level_list[0].blocks_list, True)
          
                 # For each block hit, remove the bullet and add to the score
-                for block in block_hit_list:
+                for blocks in block_hit_list:
                     bullet_list.remove(bullet)
                     all_sprite_list.remove(bullet)
                     #score += 1
