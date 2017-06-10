@@ -205,6 +205,22 @@ class Platform(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect()
 
+class Flag(pygame.sprite.Sprite):
+    """ Platform the user can jump on """
+
+    def __init__(self):
+        """ Platform constructor. Assumes constructed with user passing in
+            an array of 5 numbers like what's defined at the top of this code.
+            """
+        super().__init__()
+
+        flag = pygame.image.load("flag2.png").convert()
+
+        self.image = flag 
+        self.image.set_colorkey(BLACK)
+
+        self.rect = self.image.get_rect()
+
 
 class Level():
     """ This is a generic super-class used to define a level.
@@ -219,6 +235,7 @@ class Level():
         self.blocks_list = pygame.sprite.Group()
         self.all_sprite_list = pygame.sprite.Group()
         self.bullet_list = pygame.sprite.Group()
+        self.flag_list = pygame.sprite.Group()
         self.player = player
 
         # How far this world has been scrolled left/right
@@ -232,6 +249,7 @@ class Level():
         self.blocks_list.update()
         self.all_sprite_list.update()
         self.bullet_list.update()
+        self.flag_list.update()
 
     def draw(self, screen):
         """ Draw everything on this level. """
@@ -246,6 +264,7 @@ class Level():
         self.blocks_list.draw(screen)
         self.all_sprite_list.draw(screen)
         self.bullet_list.draw(screen)
+        self.flag_list.draw(screen)
 
     def shift_world(self, shift_x):
         """ When the user moves left/right and we need to scroll
@@ -262,8 +281,10 @@ class Level():
             enemy.rect.x += shift_x
 
         for blocks in self.blocks_list:
-            blocks.rect.x += shift_x            
-
+            blocks.rect.x += shift_x
+            
+        for flag in self.flag_list:
+            flag.rect.x += shift_x
 
 # Create platforms for the level
 class Level_01(Level):
@@ -277,13 +298,23 @@ class Level_01(Level):
 
         self.background = pygame.image.load("background3.jpg").convert()
         self.background.set_colorkey(RED)        
-        self.level_limit = -1000
+        self.level_limit = -1000  
+        
+        flag = Flag()
+        flag.rect.x = (1800)
+        flag.rect.y = (50)
+        
+        # Add the block to the list of objects
+        self.flag_list.add(flag)
+        self.all_sprite_list.add(flag)        
+            
 
         # Array with width, height, x, and y of platform
         level = [[210, 70, 500, 500],
                  [210, 70, 800, 400],
                  [210, 70, 1000, 500],
                  [210, 70, 1120, 280],
+                 [210, 70, 1400, 150],
                  ]
 
         # Go through the array above and add platforms
@@ -306,8 +337,8 @@ class Level_01(Level):
 
                 # Add the block to the list of objects
                 self.blocks_list.add(blocks)
-                self.all_sprite_list.add(blocks)      
-
+                self.all_sprite_list.add(blocks)
+                
 
 # Create platforms for the level
 class Level_02(Level):
@@ -455,6 +486,7 @@ def main():
     # List of each bullet
     bullet_list = pygame.sprite.Group() 
     blocks_list = pygame.sprite.Group()
+    flag_list = pygame.sprite.Group()
 
     # Create all the levels
     level_list = []
@@ -535,16 +567,13 @@ def main():
             diff = 120 - player.rect.left
             player.rect.left = 120
             current_level.shift_world(diff)
+        
+        if pygame.sprite.spritecollide(player, level_list[0].flag_list, True):
+            current_level_no += 1
+            current_level = level_list[current_level_no]
+            player.level = current_level                   
+                 
 
-        # If the player gets to the end of the level, go to the next level
-        current_position = player.rect.x + current_level.world_shift
-        if current_position < current_level.level_limit:
-            player.rect.x = 120
-            if current_level_no < len(level_list)-1:
-                current_level_no += 1
-                current_level = level_list[current_level_no]
-                player.level = current_level
-                
         # Calculate mechanics for each bullet
         for bullet in bullet_list:
 
