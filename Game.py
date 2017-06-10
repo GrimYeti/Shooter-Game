@@ -353,6 +353,14 @@ class Level_02(Level):
         self.background = pygame.image.load("background3.jpg").convert()
         self.background.set_colorkey(RED)          
         self.level_limit = -1000
+        
+        flag = Flag()
+        flag.rect.x = (1800)
+        flag.rect.y = (500)
+    
+        # Add the block to the list of objects
+        self.flag_list.add(flag)
+        self.all_sprite_list.add(flag)              
 
         # Array with type of platform, and x, y location of the platform.
         level = [[210, 30, 450, 570],
@@ -396,6 +404,8 @@ done = False
     
 # This is a font we use to draw text on the screen (size 36)
 font = pygame.font.Font(None, 36)
+
+font2 = pygame.font.Font(None, 150)
 
 display_instructions = True
 instruction_page = 1
@@ -508,6 +518,8 @@ def main():
     # Loop until the user clicks the close button.
     done = False
     
+    game_over = False
+    
     # Used to manage how fast the screen updates
     clock = pygame.time.Clock()
 
@@ -517,37 +529,41 @@ def main():
             if event.type == pygame.QUIT:
                 done = True
 
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            elif not game_over: 
+                if event.type == pygame.MOUSEBUTTONDOWN:
                 # Fire a bullet if the user clicks the mouse button
-
+            
                 # Get the mouse position
-                pos = pygame.mouse.get_pos()
+                    pos = pygame.mouse.get_pos()
+                    
+                    mouse_x = pos[0]
+                    mouse_y = pos[1]
 
-                mouse_x = pos[0]
-                mouse_y = pos[1]
+                    # Create the bullet based on where we are, and where we want to go.
+                    bullet = Bullet(player.rect.x, player.rect.y, mouse_x, mouse_y)
+    
+                    # Add the bullet to the lists
+                    all_sprite_list.add(bullet)
+                    bullet_list.add(bullet)
+            
+            if pygame.sprite.spritecollide(player, level_list[1].flag_list, True):
+                game_over = True
 
-                # Create the bullet based on where we are, and where we want to go.
-                bullet = Bullet(player.rect.x, player.rect.y, mouse_x, mouse_y)
-
-                # Add the bullet to the lists
-                all_sprite_list.add(bullet)
-                bullet_list.add(bullet)         
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_a:
-                    player.go_left()
-                if event.key == pygame.K_d:
-                    player.go_right()
-                if event.key == pygame.K_SPACE:
-                    player.jump()
+            if not game_over: 
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_a:
+                        player.go_left()
+                    if event.key == pygame.K_d:
+                        player.go_right()
+                    if event.key == pygame.K_SPACE:
+                        player.jump()
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_a and player.change_x < 0:
                     player.stop()
                 if event.key == pygame.K_d and player.change_x > 0:
                     player.stop()
-    
-                
+           
         # Update the player.
         active_sprite_list.update()
 
@@ -555,7 +571,8 @@ def main():
         current_level.update()
 
         all_sprite_list.update()
-
+        
+        
         # If the player gets near the right side, shift the world left (-x)
         if player.rect.right >= 500:
             diff = player.rect.right - 500
@@ -571,8 +588,8 @@ def main():
         if pygame.sprite.spritecollide(player, level_list[0].flag_list, True):
             current_level_no += 1
             current_level = level_list[current_level_no]
-            player.level = current_level                   
-                 
+            player.level = current_level 
+            
 
         # Calculate mechanics for each bullet
         for bullet in bullet_list:
@@ -596,6 +613,13 @@ def main():
         current_level.draw(screen)
         active_sprite_list.draw(screen)
         all_sprite_list.draw(screen)
+        
+        if game_over:
+            # If game over is true, draw game over
+            text = font2.render("Game Over", True, WHITE)
+            text_rect = text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
+            screen.blit(text, text_rect)      
+       
 
         # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
             
