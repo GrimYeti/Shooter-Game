@@ -413,13 +413,13 @@ while not done and display_instructions:
  
     if instruction_page == 2:
         # Draw instructions, page 2
-        text = font.render("This program bounces a rectangle", True, WHITE)
+        text = font.render("Shoot enemy's in the sky to get a hightscore", True, WHITE)
         screen.blit(text, [10, 10])    
  
-        text = font.render("Hit enter to continue", True, WHITE)
+        text = font.render("Use A,D and space for movement and Mouse1 to shoot", True, WHITE)
         screen.blit(text, [10, 40])
  
-        text = font.render("During the game, hit enter to end the game", True, WHITE)
+        text = font.render("Hit enter to continue", True, WHITE)
         screen.blit(text, [10, 80])
  
         text = font.render("Page 2", True, WHITE)
@@ -550,6 +550,7 @@ def main():
 
             # See if it hit a block
             block_hit_list = pygame.sprite.spritecollide(bullet, level_list[0].blocks_list, True)
+            block_hit_list = pygame.sprite.spritecollide(bullet, level_list[1].blocks_list, True)
 
             # For each block hit, remove the bullet and add to the score
             for blocks in block_hit_list:
