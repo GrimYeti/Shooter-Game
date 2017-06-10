@@ -350,13 +350,95 @@ class Level_02(Level):
 
                 # Add the block to the list of objects
                 self.blocks_list.add(blocks)
-                self.all_sprite_list.add(blocks)              
+                self.all_sprite_list.add(blocks)
+                
+pygame.init()
 
+# Set the height and width of the screen
+size = [SCREEN_WIDTH, SCREEN_HEIGHT]
+screen = pygame.display.set_mode(size)
+
+pygame.display.set_caption("Instruction Screen")
+
+# Loop until the user clicks the close button.
+done = False
+    
+# This is a font we use to draw text on the screen (size 36)
+font = pygame.font.Font(None, 36)
+
+display_instructions = True
+instruction_page = 1
+name = ""    
+
+# Used to manage how fast the screen updates
+clock = pygame.time.Clock()
+
+# -------- Instruction Page Loop -----------
+while not done and display_instructions:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            done = True
+        if event.type == pygame.KEYDOWN:
+            if event.unicode.isalpha():
+                name += event.unicode
+            elif event.key == pygame.K_BACKSPACE:
+                name = name[:-1]
+            elif event.key == pygame.K_RETURN:
+                instruction_page += 1  
+                if instruction_page == 3:
+                    display_instructions = False                
+ 
+    # Set the screen background
+    screen.fill(BLACK)
+ 
+    if instruction_page == 1:
+        # Draw instructions, page 1
+        # This could also load an image created in another program.
+        # That could be both easier and more flexible.
+ 
+        text = font.render("Instructions", True, WHITE)
+        screen.blit(text, [10, 10])
+       
+        text = font.render("Enter your name: ", True, WHITE)
+        screen.blit(text, [10, 40])    
+       
+        text = font.render(name, True, WHITE)
+        screen.blit(text, [220, 40])        
+ 
+        text = font.render("Hit enter to continue", True, WHITE)
+        screen.blit(text, [10, 80])
+       
+        text = font.render("Page 1", True, WHITE)
+        screen.blit(text, [10, 120])
+ 
+    if instruction_page == 2:
+        # Draw instructions, page 2
+        text = font.render("This program bounces a rectangle", True, WHITE)
+        screen.blit(text, [10, 10])    
+ 
+        text = font.render("Hit enter to continue", True, WHITE)
+        screen.blit(text, [10, 40])
+ 
+        text = font.render("During the game, hit enter to end the game", True, WHITE)
+        screen.blit(text, [10, 80])
+ 
+        text = font.render("Page 2", True, WHITE)
+        screen.blit(text, [10, 120])
+ 
+    # Limit to 60 frames per second
+    clock.tick(60)
+ 
+    # Go ahead and update the screen with what we've drawn.
+    pygame.display.flip()
+   
+    score = 0
 
 
 def main():
     """ Main Program """
     pygame.init()
+    
+    global score
 
     # Set the height and width of the screen
     size = [SCREEN_WIDTH, SCREEN_HEIGHT]
@@ -393,7 +475,7 @@ def main():
 
     # Loop until the user clicks the close button.
     done = False
-
+    
     # Used to manage how fast the screen updates
     clock = pygame.time.Clock()
 
@@ -417,7 +499,7 @@ def main():
 
                 # Add the bullet to the lists
                 all_sprite_list.add(bullet)
-                bullet_list.add(bullet)              
+                bullet_list.add(bullet)         
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
@@ -432,7 +514,8 @@ def main():
                     player.stop()
                 if event.key == pygame.K_d and player.change_x > 0:
                     player.stop()
-
+    
+                
         # Update the player.
         active_sprite_list.update()
 
@@ -461,14 +544,7 @@ def main():
                 current_level_no += 1
                 current_level = level_list[current_level_no]
                 player.level = current_level
-
-        # ALL CODE TO DRAW SHOULD GO BELOW THIS COMMENT
-        current_level.draw(screen)
-        active_sprite_list.draw(screen)
-        all_sprite_list.draw(screen)
-
-        # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
-
+                
         # Calculate mechanics for each bullet
         for bullet in bullet_list:
 
@@ -479,14 +555,24 @@ def main():
             for blocks in block_hit_list:
                 bullet_list.remove(bullet)
                 all_sprite_list.remove(bullet)
-                #score += 1
-                #print(score)
-
+                score += 1
+            
             # Remove the bullet if it flies up off the screen
             if bullet.rect.y < -10:
                 bullet_list.remove(bullet)
-                all_sprite_list.remove(bullet)        
+                all_sprite_list.remove(bullet)
 
+        # ALL CODE TO DRAW SHOULD GO BELOW THIS COMMENT
+        current_level.draw(screen)
+        active_sprite_list.draw(screen)
+        all_sprite_list.draw(screen)
+
+        # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
+            
+        scoretext = "Score: " + str(score)
+        text = font.render(scoretext, True, WHITE)
+        screen.blit(text, [10, 10])
+            
         # Limit to 60 frames per second
         clock.tick(60)
 
