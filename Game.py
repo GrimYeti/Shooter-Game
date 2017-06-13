@@ -327,7 +327,7 @@ class Level_01(Level):
 
         # Go through the array above and add platforms
         for blocks in level:
-            for i in range(25):
+            for i in range(10):
                 # This represents a block
                 blocks = Block(BLUE)
 
@@ -379,7 +379,7 @@ class Level_02(Level):
 
         # Go through the array above and add platforms
         for blocks in level:
-            for i in range(50):
+            for i in range(25):
                 # This represents a block
                 blocks = Block(BLUE)
 
@@ -540,7 +540,7 @@ def main():
                     mouse_y = pos[1]
 
                     # Create the bullet based on where we are, and where we want to go.
-                    bullet = Bullet(player.rect.x, player.rect.y, mouse_x, mouse_y)
+                    bullet = Bullet(player.rect.x + 100, player.rect.y + 10, mouse_x, mouse_y)
     
                     # Add the bullet to the lists
                     all_sprite_list.add(bullet)
@@ -590,24 +590,41 @@ def main():
             current_level = level_list[current_level_no]
             player.level = current_level 
             
+        if current_level_no == 0:
+            # Calculate mechanics for each bullet
+            for bullet in bullet_list:
 
-        # Calculate mechanics for each bullet
-        for bullet in bullet_list:
+                # See if it hit a block
+                block_hit_list = pygame.sprite.spritecollide(bullet, level_list[0].blocks_list, True)
 
-            # See if it hit a block
-            block_hit_list = pygame.sprite.spritecollide(bullet, level_list[0].blocks_list, True)
-            block_hit_list = pygame.sprite.spritecollide(bullet, level_list[1].blocks_list, True)
-
-            # For each block hit, remove the bullet and add to the score
-            for blocks in block_hit_list:
-                bullet_list.remove(bullet)
-                all_sprite_list.remove(bullet)
-                score += 1
+                # For each block hit, remove the bullet and add to the score
+                for blocks in block_hit_list:
+                    bullet_list.remove(bullet)
+                    all_sprite_list.remove(bullet)
+                    score += 1
             
-            # Remove the bullet if it flies up off the screen
-            if bullet.rect.y < -10:
-                bullet_list.remove(bullet)
-                all_sprite_list.remove(bullet)
+                    # Remove the bullet if it flies up off the screen
+                    if bullet.rect.y < -10:
+                        bullet_list.remove(bullet)
+                        all_sprite_list.remove(bullet)
+            
+        if current_level_no == 1:
+            # Calculate mechanics for each bullet
+            for bullet in bullet_list:
+
+                # See if it hit a block
+                block_hit_list = pygame.sprite.spritecollide(bullet, level_list[1].blocks_list, True)
+
+                # For each block hit, remove the bullet and add to the score
+                for blocks in block_hit_list:
+                    bullet_list.remove(bullet)
+                    all_sprite_list.remove(bullet)
+                    score += 1
+            
+                    # Remove the bullet if it flies up off the screen
+                    if bullet.rect.y < -10:
+                        bullet_list.remove(bullet)
+                        all_sprite_list.remove(bullet)
 
         # ALL CODE TO DRAW SHOULD GO BELOW THIS COMMENT
         current_level.draw(screen)
