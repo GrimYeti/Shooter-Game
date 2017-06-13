@@ -431,7 +431,7 @@ while not done and display_instructions:
  
     # Set the screen background
     screen.fill(BLACK)
- 
+    
     if instruction_page == 1:
         # Draw instructions, page 1
         # This could also load an image created in another program.
@@ -465,6 +465,7 @@ while not done and display_instructions:
  
         text = font.render("Page 2", True, WHITE)
         screen.blit(text, [10, 120])
+        
  
     # Limit to 60 frames per second
     clock.tick(60)
@@ -522,6 +523,10 @@ def main():
     
     # Used to manage how fast the screen updates
     clock = pygame.time.Clock()
+    
+    frame_count = 0
+    frame_rate = 60
+    start_time = 90    
 
     # -------- Main Program Loop -----------
     while not done:
@@ -571,6 +576,19 @@ def main():
         current_level.update()
 
         all_sprite_list.update()
+        
+        # --- Timer going up ---
+        # Calculate total seconds
+        total_seconds = frame_count // frame_rate
+     
+        # Divide by 60 to get total minutes
+        minutes = total_seconds // 60
+     
+        # Use modulus (remainder) to get seconds
+        seconds = total_seconds % 60
+     
+        # Use python string formatting to format in leading zeros
+        output_string = "Time: {0:02}:{1:02}".format(minutes, seconds)        
         
         
         # If the player gets near the right side, shift the world left (-x)
@@ -635,7 +653,7 @@ def main():
             # If game over is true, draw game over
             text = font2.render("Game Over", True, WHITE)
             text_rect = text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
-            screen.blit(text, text_rect)      
+            screen.blit(text, text_rect)
        
 
         # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
@@ -643,7 +661,17 @@ def main():
         scoretext = "Score: " + str(score)
         text = font.render(scoretext, True, WHITE)
         screen.blit(text, [10, 10])
+        
+        # Blit to the screen
+        text = font.render(output_string, True, WHITE)
+        screen.blit(text, [650, 10])
+        
+        if not game_over:
+            frame_count += 1
             
+        if game_over:
+            frame_count + 0
+    
         # Limit to 60 frames per second
         clock.tick(60)
 
