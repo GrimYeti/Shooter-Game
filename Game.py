@@ -524,6 +524,10 @@ def main():
     # Used to manage how fast the screen updates
     clock = pygame.time.Clock()
     
+    shoot_sound = pygame.mixer.Sound("shoot2.ogg")
+    death_sound = pygame.mixer.Sound("death.ogg")
+    jump_sound = pygame.mixer.Sound("jump.ogg")
+    
     frame_count = 0
     frame_rate = 60
     start_time = 90    
@@ -561,6 +565,7 @@ def main():
 
             elif not game_over: 
                 if event.type == pygame.MOUSEBUTTONDOWN:
+                    shoot_sound.play()
                 # Fire a bullet if the user clicks the mouse button
             
                 # Get the mouse position
@@ -587,6 +592,7 @@ def main():
                         player.go_right()
                     if event.key == pygame.K_SPACE:
                         player.jump()
+                        jump_sound.play()
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_a and player.change_x < 0:
@@ -646,6 +652,7 @@ def main():
                     bullet_list.remove(bullet)
                     all_sprite_list.remove(bullet)
                     score += 1
+                    death_sound.play()
             
                     # Remove the bullet if it flies up off the screen
                     if bullet.rect.y < -10:
@@ -664,6 +671,7 @@ def main():
                     bullet_list.remove(bullet)
                     all_sprite_list.remove(bullet)
                     score += 1
+                    death_sound.play()
             
                     # Remove the bullet if it flies up off the screen
                     if bullet.rect.y < -10:
