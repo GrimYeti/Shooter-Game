@@ -533,6 +533,31 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 done = True
+                
+                scoregg = round(score + frame_count / 60)
+                
+                try:
+                    file = open('highscores.txt', 'r')
+                    lines = file.readlines()
+                    prevhighscore = int(lines[0])
+                    prevname = lines[1]
+                    file.close()                    
+                except IOError:
+                    file = open('highscores.txt', 'w')
+                    writescore = str(scoregg) + "\n"
+                    file.write(writescore)
+                    writename = name + "\n"
+                    file.write(writename)
+                    file.close()
+        
+        
+                if scoregg > prevhighscore:
+                    file = open('highscores.txt', 'w')
+                    writescore = str(scoregg) + "\n"
+                    file.write(writescore)
+                    writename = name + "\n"
+                    file.write(writename)
+                    file.close()                
 
             elif not game_over: 
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -568,7 +593,8 @@ def main():
                     player.stop()
                 if event.key == pygame.K_d and player.change_x > 0:
                     player.stop()
-           
+
+        
         # Update the player.
         active_sprite_list.update()
 
