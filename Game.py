@@ -15,7 +15,6 @@ BLUE = (0, 0, 255)
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
-
 class Player(pygame.sprite.Sprite):
     """
     This class represents the bar at the bottom that the player controls.
@@ -206,7 +205,7 @@ class Platform(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
 class Flag(pygame.sprite.Sprite):
-    """ Platform the user can jump on """
+    """ Sprite to change levels when the player touches it. """
 
     def __init__(self):
         """ Platform constructor. Assumes constructed with user passing in
@@ -325,7 +324,7 @@ class Level_01(Level):
             block.player = self.player
             self.platform_list.add(block)
 
-        # Go through the array above and add platforms
+        # Spawns the blocks for level 1
         for blocks in level:
             for i in range(10):
                 # This represents a block
@@ -377,7 +376,7 @@ class Level_02(Level):
             block.player = self.player
             self.platform_list.add(block)
 
-        # Go through the array above and add platforms
+        # Spawns the blocks for level 2
         for blocks in level:
             for i in range(25):
                 # This represents a block
@@ -405,6 +404,7 @@ done = False
 # This is a font we use to draw text on the screen (size 36)
 font = pygame.font.Font(None, 36)
 
+# This is a font we use to draw text on the screen (size 150)
 font2 = pygame.font.Font(None, 150)
 
 display_instructions = True
@@ -430,7 +430,9 @@ while not done and display_instructions:
                     display_instructions = False                
  
     # Set the screen background
-    screen.fill(BLACK)
+    #screen.fill(BLACK)
+    background = pygame.image.load("menu.jpg").convert()
+    screen.blit(background, [0, 0])
     
     if instruction_page == 1:
         # Draw instructions, page 1
@@ -444,7 +446,24 @@ while not done and display_instructions:
         screen.blit(text, [10, 40])    
        
         text = font.render(name, True, WHITE)
-        screen.blit(text, [220, 40])        
+        screen.blit(text, [220, 40])
+        
+        try:
+            file = open('highscores.txt', 'r')
+            lines = file.readlines()
+            prevhighscore = int(lines[0])
+            prevname = lines[1]
+            file.close()
+        except IOError:
+            file = open('highscores.txt', 'w')
+            prevhighscore = str(0) + "\n"
+            file.write(prevhighscore)
+            writename = name + "\n"
+            file.write(writename)
+            file.close()        
+        
+        text = font.render("Current Highscore {0}".format(prevhighscore), True, WHITE)
+        screen.blit(text, [10, 100])
  
         text = font.render("Hit enter to continue", True, WHITE)
         screen.blit(text, [10, 80])
@@ -524,10 +543,12 @@ def main():
     # Used to manage how fast the screen updates
     clock = pygame.time.Clock()
     
+    # Load sounds recorded by me
     shoot_sound = pygame.mixer.Sound("shoot2.ogg")
     death_sound = pygame.mixer.Sound("death.ogg")
     jump_sound = pygame.mixer.Sound("jump.ogg")
     
+    # Sets defaults for timer
     frame_count = 0
     frame_rate = 60
     start_time = 90    
@@ -538,14 +559,18 @@ def main():
             if event.type == pygame.QUIT:
                 done = True
                 
+                # Calculation for the displayed highscore
                 scoregg = round(score + frame_count / 60)
                 
+                # Opens the highscore file and reads the lines.
                 try:
                     file = open('highscores.txt', 'r')
                     lines = file.readlines()
                     prevhighscore = int(lines[0])
                     prevname = lines[1]
                     file.close()                    
+                
+                # If there is no highscore file, make one.
                 except IOError:
                     file = open('highscores.txt', 'w')
                     writescore = str(scoregg) + "\n"
@@ -554,7 +579,7 @@ def main():
                     file.write(writename)
                     file.close()
         
-        
+                # Check if the new score is better than the highscore.
                 if scoregg > prevhighscore:
                     file = open('highscores.txt', 'w')
                     writescore = str(scoregg) + "\n"
@@ -581,9 +606,11 @@ def main():
                     all_sprite_list.add(bullet)
                     bullet_list.add(bullet)
             
+            # If the player hits the last flag, end game.
             if pygame.sprite.spritecollide(player, level_list[1].flag_list, True):
                 game_over = True
-
+            
+            # Settings the keys for movement.
             if not game_over: 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_a:
@@ -691,7 +718,8 @@ def main():
        
 
         # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
-            
+        
+        # Blit to the screen    
         scoretext = "Score: " + str(score)
         text = font.render(scoretext, True, WHITE)
         screen.blit(text, [10, 10])
