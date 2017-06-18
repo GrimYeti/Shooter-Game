@@ -462,7 +462,7 @@ while not done and display_instructions:
             file.write(writename)
             file.close()        
         
-        text = font.render("Current Highscore {0}".format(prevhighscore), True, WHITE)
+        text = font.render("Current Highscore: {0}".format(prevhighscore), True, WHITE)
         screen.blit(text, [10, 100])
  
         text = font.render("Hit enter to continue", True, WHITE)
@@ -566,7 +566,7 @@ def main():
                 try:
                     file = open('highscores.txt', 'r')
                     lines = file.readlines()
-                    prevhighscore = int(lines[0])
+                    prevhighscore_new = int(lines[0])
                     prevname = lines[1]
                     file.close()                    
                 
@@ -580,7 +580,7 @@ def main():
                     file.close()
         
                 # Check if the new score is better than the highscore.
-                if scoregg > prevhighscore:
+                if scoregg > prevhighscore_new:
                     file = open('highscores.txt', 'w')
                     writescore = str(scoregg) + "\n"
                     file.write(writescore)
