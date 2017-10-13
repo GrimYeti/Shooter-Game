@@ -2,6 +2,7 @@ import pygame
 import random
 import math
 import pytmx
+from os import path
 
 # Global constants
 
@@ -16,9 +17,7 @@ BLUE = (0, 0, 255)
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
-game_folder = path.dirname(__file__)
-map_folder = path.join(game_folder, 'maps')
-self.map = TiledMap(path.join(map_folder, 'level1.tmx'))
+
 
 class Player(pygame.sprite.Sprite):
     """
@@ -227,7 +226,7 @@ class Flag(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect()
 
-class Wall(pg.sprite.Sprite):
+class Wall(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites, game.walls
         pygame.sprite.Sprite.__init__(self, self.groups)
@@ -239,7 +238,7 @@ class Wall(pg.sprite.Sprite):
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
 
-class Obstacle(pg.sprite.Sprite):
+class Obstacle(pygame.sprite.Sprite):
     def __init__(self, game, x, y, w, h):
         self.groups = game.walls
         pygame.sprite.Sprite.__init__(self, self.groups)
@@ -250,7 +249,43 @@ class Obstacle(pg.sprite.Sprite):
         self.y = y
         self.rect.x = x
         self.rect.y = y
+        
+class Map:
+    def __init__(self, filename):
+        self.data = []
+        with open(filename, 'rt') as f:
+            for line in f:
+                self.data.append(line.strip())
 
+        self.tilewidth = len(self.data[0])
+        self.tileheight = len(self.data)
+        self.width = self.tilewidth * TILESIZE
+        self.height = self.tileheight * TILESIZE
+
+
+class TiledMap:
+    def __init__(self, filename):
+        tm = pytmx.load_pygame(filename, pixelalpha=True)
+        self.width = tm.width * tm.tilewidth
+        self.height = tm.height * tm.tileheight
+        self.tmxdata = tm
+        
+    def render(self, surface):
+        ti = self.tmxdata.get_tile_image_by_gid
+        for layer in self.tmxdata.visible_layers:
+            if isinstance(layer, pytmx.TiledTileLayer):
+                for x, y, gid, in layer:
+                    tile = ti(gid)
+                    if tile:
+                        surface.blit(tile, (x * self.tmxdata.tilewidth,
+                                                y * self.tmxdata.tileheight))
+    
+    def make_map(self):
+        temp_surface = pygame.Surface((self.width, self.height))
+        self.render(temp_surface)
+        return temp_surface    
+
+        
 
 class Level():
     """ This is a generic super-class used to define a level.
@@ -293,7 +328,7 @@ class Level():
             if tile_object.name == 'wall':
                 Obstacle(self, tile_object.x, tile_object.y,
                          tile_object.width, tile_object.height)
-        screen.blit(self.background,(self.world_shift // 3,0))
+        #screen.blit(self.background,(self.world_shift // 3,0))
 
         # Draw all the sprite lists that we have
         self.platform_list.draw(screen)
@@ -322,6 +357,15 @@ class Level():
             
         for flag in self.flag_list:
             flag.rect.x += shift_x
+    
+    
+    
+    def load_data(self):
+        game_folder = path.dirname(__file__)
+        map_folder = path.join(game_folder, 'maps')
+        self.map = TiledMap(path.join(map_folder, 'level1.tmx'))
+        self.map_img = self.map.make_map()
+        self.map_rect = self.map_img.get_rect()    
 
 # Create platforms for the level
 class Level_01(Level):
@@ -332,50 +376,39 @@ class Level_01(Level):
 
         # Call the parent constructor
         Level.__init__(self, player)
-
-        self.background = pygame.image.load("background3.jpg").convert()
-        self.background.set_colorkey(RED)        
-        self.level_limit = -1000  
         
-        flag = Flag()
-        flag.rect.x = (1800)
-        flag.rect.y = (50)
+        game_folder = path.dirname(__file__)
+        map_folder = path.join(game_folder, 'maps')
+        self.map = TiledMap(path.join(map_folder, 'level1.tmx'))
+        self.map_img = self.map.make_map()
+        self.map_rect = self.map_img.get_rect()          
+ 
+        self.load_data
         
-        # Add the block to the list of objects
-        self.flag_list.add(flag)
-        self.all_sprite_list.add(flag)        
-            
-
-        # Array with width, height, x, and y of platform
-        level = [[210, 70, 500, 500],
-                 [210, 70, 800, 400],
-                 [210, 70, 1000, 500],
-                 [210, 70, 1120, 280],
-                 [210, 70, 1400, 150],
-                 ]
-
-        # Go through the array above and add platforms
-        for platform in level:
-            block = Platform(platform[0], platform[1])
-            block.rect.x = platform[2]
-            block.rect.y = platform[3]
-            block.player = self.player
-            self.platform_list.add(block)
+        for tile_object in self.map.tmxdata.objects:
+            if tile_object.name == 'player':
+                self.player = Player(self, tile_object.x, tile_object.y)
+                if tile_object.name == 'wall':
+                    Obstacle(self, tile_object.x, tile_object.y,
+                             file_object.width, tile_object.height)
+                    
+        
+        
             
   
-        # Spawns the blocks for level 1
-        for blocks in level:
-            for i in range(10):
-                # This represents a block
-                blocks = Block(BLUE)
+        ## Spawns the blocks for level 1
+        #for blocks in level:
+            #for i in range(10):
+                ## This represents a block
+                #blocks = Block(BLUE)
 
-                # Set a random location for the block
-                blocks.rect.x = random.randrange(2000)
-                blocks.rect.y = random.randrange(350)
+                ## Set a random location for the block
+                #blocks.rect.x = random.randrange(2000)
+                #blocks.rect.y = random.randrange(350)
 
-                # Add the block to the list of objects
-                self.blocks_list.add(blocks)
-                self.all_sprite_list.add(blocks)
+                ## Add the block to the list of objects
+                #self.blocks_list.add(blocks)
+                #self.all_sprite_list.add(blocks)
                 
                 
 pygame.init()
