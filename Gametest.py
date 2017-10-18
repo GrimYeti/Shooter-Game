@@ -17,6 +17,28 @@ BLUE = (0, 0, 255)
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
+TILESIZE = 70
+
+
+#def collide_with_walls(sprite, group, dir):
+    #if dir == 'x':
+        #hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect)
+        #if hits:
+            #if hits[0].rect.centerx > sprite.hit_rect.centerx:
+                #sprite.pos.x = hits[0].rect.left - sprite.hit_rect.width / 2
+            #if hits[0].rect.centerx < sprite.hit_rect.centerx:
+                #sprite.pos.x = hits[0].rect.right + sprite.hit_rect.width / 2
+            #sprite.vel.x = 0
+            #sprite.hit_rect.centerx = sprite.pos.x
+    #if dir == 'y':
+        #hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect)
+        #if hits:
+            #if hits[0].rect.centery > sprite.hit_rect.centery:
+                #sprite.pos.y = hits[0].rect.top - sprite.hit_rect.height / 2
+            #if hits[0].rect.centery < sprite.hit_rect.centery:
+                #sprite.pos.y = hits[0].rect.bottom + sprite.hit_rect.height / 2
+            #sprite.vel.y = 0
+            #sprite.hit_rect.centery = sprite.pos.y
 
 
 class Player(pygame.sprite.Sprite):
@@ -227,10 +249,9 @@ class Flag(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
 class Wall(pygame.sprite.Sprite):
-    def __init__(self, game, x, y):
-        self.groups = game.all_sprites, game.walls
+    def __init__(self, x, y):
+        self.groups = walls
         pygame.sprite.Sprite.__init__(self, self.groups)
-        self.game = game
         self.image = game.wall_img
         self.rect = self.image.get_rect()
         self.x = x
@@ -239,10 +260,8 @@ class Wall(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
 class Obstacle(pygame.sprite.Sprite):
-    def __init__(self, game, x, y, w, h):
-        self.groups = game.walls
-        pygame.sprite.Sprite.__init__(self, self.groups)
-        self.game = game
+    def __init__(self, x, y, w, h):
+        pygame.sprite.Sprite.__init__(self, self.add(*groups))
         self.rect = pygame.Rect(x, y, w, h)
         self.hit_rect = self.rect
         self.x = x
@@ -302,6 +321,8 @@ class Level():
         self.bullet_list = pygame.sprite.Group()
         self.flag_list = pygame.sprite.Group()
         self.player = player
+        self.walls = pygame.sprite.Group()
+        self.wall = pygame.sprite.Group()
 
         # How far this world has been scrolled left/right
         self.world_shift = 0
@@ -326,9 +347,12 @@ class Level():
             if tile_object.name == 'enemy':
                 Block(self, tile_object.x, tile_object.y)
             if tile_object.name == 'wall':
-                Obstacle(self, tile_object.x, tile_object.y,
+                Obstacle(tile_object.x, tile_object.y,
                          tile_object.width, tile_object.height)
-        #screen.blit(self.background,(self.world_shift // 3,0))
+                
+        self.screen.blit(self.map_img,(self.world_shift // 3,0))
+        #self.screen.blit(self.map_img, self.world_shift // 3,0(self.map_rect))
+        #self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
         # Draw all the sprite lists that we have
         self.platform_list.draw(screen)
@@ -363,7 +387,7 @@ class Level():
     def load_data(self):
         game_folder = path.dirname(__file__)
         map_folder = path.join(game_folder, 'maps')
-        self.map = TiledMap(path.join(map_folder, 'level1.tmx'))
+        self.map = TiledMap(path.join(map_folder, 'test.tmx'))
         self.map_img = self.map.make_map()
         self.map_rect = self.map_img.get_rect()    
 
@@ -379,11 +403,14 @@ class Level_01(Level):
         
         game_folder = path.dirname(__file__)
         map_folder = path.join(game_folder, 'maps')
-        self.map = TiledMap(path.join(map_folder, 'level1.tmx'))
+        self.map = TiledMap(path.join(map_folder, 'test.tmx'))
         self.map_img = self.map.make_map()
         self.map_rect = self.map_img.get_rect()          
  
         self.load_data
+        
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        
         
         for tile_object in self.map.tmxdata.objects:
             if tile_object.name == 'player':
