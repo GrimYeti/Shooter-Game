@@ -3,6 +3,7 @@ import random
 import math
 import pytmx
 from os import path
+vec = pygame.math.Vector2
 
 # Global constants
 
@@ -20,25 +21,48 @@ SCREEN_HEIGHT = 600
 TILESIZE = 70
 
 
-#def collide_with_walls(sprite, group, dir):
-    #if dir == 'x':
-        #hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect)
-        #if hits:
-            #if hits[0].rect.centerx > sprite.hit_rect.centerx:
-                #sprite.pos.x = hits[0].rect.left - sprite.hit_rect.width / 2
-            #if hits[0].rect.centerx < sprite.hit_rect.centerx:
-                #sprite.pos.x = hits[0].rect.right + sprite.hit_rect.width / 2
-            #sprite.vel.x = 0
-            #sprite.hit_rect.centerx = sprite.pos.x
-    #if dir == 'y':
-        #hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect)
-        #if hits:
-            #if hits[0].rect.centery > sprite.hit_rect.centery:
-                #sprite.pos.y = hits[0].rect.top - sprite.hit_rect.height / 2
-            #if hits[0].rect.centery < sprite.hit_rect.centery:
-                #sprite.pos.y = hits[0].rect.bottom + sprite.hit_rect.height / 2
-            #sprite.vel.y = 0
-            #sprite.hit_rect.centery = sprite.pos.y
+def collide_with_walls(sprite, group, dir):
+    if dir == 'x':
+        hits = pygame.sprite.spritecollide(sprite, group, False, collide_hit_rect)
+        if hits:
+            if hits[0].rect.centerx > sprite.hit_rect.centerx:
+                sprite.pos.x = hits[0].rect.left - sprite.hit_rect.width / 2
+            if hits[0].rect.centerx < sprite.hit_rect.centerx:
+                sprite.pos.x = hits[0].rect.right + sprite.hit_rect.width / 2
+            sprite.vel.x = 0
+            sprite.hit_rect.centerx = sprite.pos.x
+    if dir == 'y':
+        hits = pygame.sprite.spritecollide(sprite, group, False, collide_hit_rect)
+        if hits:
+            if hits[0].rect.centery > sprite.hit_rect.centery:
+                sprite.pos.y = hits[0].rect.top - sprite.hit_rect.height / 2
+            if hits[0].rect.centery < sprite.hit_rect.centery:
+                sprite.pos.y = hits[0].rect.bottom + sprite.hit_rect.height / 2
+            sprite.vel.y = 0
+            sprite.hit_rect.centery = sprite.pos.y
+            
+class Camera:
+    def __init__(self, width, height):
+        self.camera = pygame.Rect(0, 0, width, height)
+        self.width = width
+        self.height = height
+
+    def apply(self, entity):
+        return entity.rect.move(self.camera.topleft)
+
+    def apply_rect(self, rect):
+        return rect.move(self.camera.topleft)
+
+    def update(self, target):
+        x = -target.rect.centerx + int(SCREEN_WIDTH / 2)
+        y = -target.rect.centery + int(SCREEN_HEIGHT / 2)
+
+        # limit scrolling to map size
+        x = min(0, x)  # left
+        y = min(0, y)  # top
+        x = max(-(self.width - SCREEN_WIDTH), x)  # right
+        y = max(-(self.height - SCREEN_HEIGHT), y)  # bottom
+        self.camera = pygame.Rect(x, y, self.width, self.height)
 
 
 class Player(pygame.sprite.Sprite):
@@ -47,7 +71,7 @@ class Player(pygame.sprite.Sprite):
     """
 
     # -- Methods
-    def __init__(self):
+    def __init__(self, x, y):
         """ Constructor function """
 
         # Call the parent's constructor
@@ -58,14 +82,21 @@ class Player(pygame.sprite.Sprite):
         player = pygame.image.load("aaa.png").convert()
         player.set_colorkey(BLUE)
         self.image = player
-
-
+        
+        self.walls = pygame.sprite.Group()
+ 
+        
         # Set a referance to the image rect.
         self.rect = self.image.get_rect()
 
         # Set speed vector of player
         self.change_x = 0
         self.change_y = 0
+        
+        self.vel = vec(0, 0)
+        self.hit_rect = pygame.Rect(0, 0, 35, 35) 
+        self.hit_rect.center = self.rect.center
+        self.pos = vec(x, y)
 
         # List of sprites we can bump against
         self.level = None
@@ -77,7 +108,17 @@ class Player(pygame.sprite.Sprite):
 
         # Move left/right
         self.rect.x += self.change_x
-
+        
+        
+        self.rect = self.image.get_rect()
+        self.rect.center = self.pos
+        #self.pos += self.vel * self.dt
+        self.hit_rect.centerx = self.pos.x
+        collide_with_walls(self, self.walls, 'x')
+        self.hit_rect.centery = self.pos.y
+        collide_with_walls(self, self.walls, 'y')
+        self.rect.center = self.hit_rect.center
+        
         # See if we hit anything
         block_hit_list = pygame.sprite.spritecollide(self, self.level.platform_list, False)
         for block in block_hit_list:
@@ -265,14 +306,17 @@ class Obstacle(pygame.sprite.Sprite):
         self.groups = game.walls
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.rect = pg.Rect(x, y, w, h)
+        self.rect = pygame.Rect(x, y, w, h)
         self.hit_rect = self.rect
         self.x = x
         self.y = y
         self.rect.x = x
         self.rect.y = y
-        
 
+def collide_hit_rect(one, two):
+    return one.hit_rect.colliderect(two.rect)
+
+        
 class TiledMap:
     def __init__(self, filename):
         tm = pytmx.load_pygame(filename, pixelalpha=True)
@@ -316,7 +360,7 @@ class Level():
         self.wall = pygame.sprite.Group()
 
         # How far this world has been scrolled left/right
-        self.world_shift = 0
+        self.camera = Camera(4060, 1540)
 
     # Update everythign on this level
     def update(self):
@@ -327,23 +371,23 @@ class Level():
         self.all_sprite_list.update()
         self.bullet_list.update()
         self.flag_list.update()
+        self.camera.update(self.player)
 
     def draw(self, screen):
         """ Draw everything on this level. """
 
         # Draw the background
-        #for tile_object in self.map.tmxdata.objects:
+        for tile_object in self.map.tmxdata.objects:
             #if tile_object.name == 'player':
                 #self.player = Player(self, tile_object.x, tile_object.y)
-            #if tile_object.name == 'enemy':
-                #Block(self, tile_object.x, tile_object.y)
-            #if tile_object.name == 'wall':
-                #Obstacle(tile_object.x, tile_object.y,
-                         #tile_object.width, tile_object.height)
+            if tile_object.name == 'enemy':
+                Block(self, tile_object.x, tile_object.y)
+            if tile_object.name == 'wall':
+                Obstacle(self, tile_object.x, tile_object.y, tile_object.width, tile_object.height)
                 
-        self.screen.blit(self.map_img,(self.world_shift // 3,0))
-        #self.screen.blit(self.map_img, self.world_shift // 3,0(self.map_rect))
-        #self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.screen.blit(self.map_img, self.camera.apply_rect(self.map_rect))
+        #self.screen.blit(self.map_img,(self.world_shift // 3,0))
+        
 
         # Draw all the sprite lists that we have
         self.platform_list.draw(screen)
@@ -353,26 +397,6 @@ class Level():
         self.bullet_list.draw(screen)
         self.flag_list.draw(screen)
 
-    def shift_world(self, shift_x):
-        """ When the user moves left/right and we need to scroll
-        everything: """
-
-        # Keep track of the shift amount
-        self.world_shift += shift_x
-
-        # Go through all the sprite lists and shift
-        for platform in self.platform_list:
-            platform.rect.x += shift_x
-
-        for enemy in self.enemy_list:
-            enemy.rect.x += shift_x
-
-        for blocks in self.blocks_list:
-            blocks.rect.x += shift_x
-            
-        for flag in self.flag_list:
-            flag.rect.x += shift_x
-    
     
     
     def load_data(self):
@@ -398,17 +422,17 @@ class Level_01(Level):
         self.map_img = self.map.make_map()
         self.map_rect = self.map_img.get_rect()          
  
+        self.camera = Camera(4060, 1540)
         self.load_data
         
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         
         
-        #for tile_object in self.map.tmxdata.objects:
+        for tile_object in self.map.tmxdata.objects:
             #if tile_object.name == 'player':
                 #self.player = Player(self, tile_object.x, tile_object.y)
-                #if tile_object.name == 'wall':
-                    #Obstacle(self, tile_object.x, tile_object.y,
-                             #file_object.width, tile_object.height)
+                if tile_object.name == 'wall':
+                    Obstacle(self, tile_object.x, tile_object.y, tile_object.width, tile_object.height)
                     
         
         
@@ -547,7 +571,7 @@ def main():
     pygame.display.set_caption("My Game")
 
     # Create the player
-    player = Player()
+    player = Player(50, 50)
 
     # List to hold all the sprites
     all_sprite_list = pygame.sprite.Group()
@@ -689,17 +713,17 @@ def main():
         output_string = "Time: {0:02}:{1:02}".format(minutes, seconds)        
         
         
-        # If the player gets near the right side, shift the world left (-x)
-        if player.rect.right >= 500:
-            diff = player.rect.right - 500
-            player.rect.right = 500
-            current_level.shift_world(-diff)
+        ## If the player gets near the right side, shift the world left (-x)
+        #if player.rect.right >= 500:
+            #diff = player.rect.right - 500
+            #player.rect.right = 500
+            #current_level.shift_world(-diff)
 
-        # If the player gets near the left side, shift the world right (+x)
-        if player.rect.left <= 120:
-            diff = 120 - player.rect.left
-            player.rect.left = 120
-            current_level.shift_world(diff)
+        ## If the player gets near the left side, shift the world right (+x)
+        #if player.rect.left <= 120:
+            #diff = 120 - player.rect.left
+            #player.rect.left = 120
+            #current_level.shift_world(diff)
         
         if current_level_no == 0:
             # Calculate mechanics for each bullet
